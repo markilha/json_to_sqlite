@@ -4,8 +4,7 @@ import styles from "./page.module.css";
 
 export default function Home() {
   const [json, setJson] = useState(null);
-  const [sql, setSql] = useState("");
-  const [nameTable, setNameTable] = useState("");
+  const [sql, setSql] = useState(""); 
 
   function converterJsonEmSql(json) {
     // Verificar se o json é válido
@@ -47,6 +46,7 @@ export default function Home() {
     }
   }
   function converterJsonEmSqliteInsert(json, nomeTabela) {
+  
     if (json && typeof json === "object") {
       let sqlite = "";
       let chaves = Object.keys(json);
@@ -57,7 +57,7 @@ export default function Home() {
 
       for (let valor of valores) {
         if (typeof valor === "object") {
-          let subsqlite = converterJsonEmSqliteInsert(valor, nameTable);
+          let subsqlite = converterJsonEmSqliteInsert(valor, '@NOMETABELA');
           sqlite += `${subsqlite}\n`;
         } else {
           if (typeof valor === "string") {
@@ -79,25 +79,24 @@ export default function Home() {
   }
 
   function handleChange(event) {
-    let arquivo = event.target.files[0];
-
-    if (arquivo && arquivo.name.endsWith(".json")) {
-      let leitor = new FileReader();
-      leitor.onload = function (e) {
-        let conteudo = e.target.result;
-        try {
-          let json = JSON.parse(conteudo);
-          setJson(json);
-          let sql = converterJsonEmSqliteInsert(json);
-          setSql(sql);
-        } catch (erro) {
-          alert("O arquivo json não é válido.");
-        }
-      };
-      leitor.readAsText(arquivo);
-    } else {
-      alert("Por favor, selecione um arquivo .json válido.");
-    }
+    let arquivo = event.target.files[0];  
+      if (arquivo && arquivo.name.endsWith(".json")) {
+        let leitor = new FileReader();
+        leitor.onload = function (e) {
+          let conteudo = e.target.result;
+          try {
+            let json = JSON.parse(conteudo);
+            setJson(json);
+            let sql = converterJsonEmSqliteInsert(json);
+            setSql(sql);
+          } catch (erro) {
+            alert("O arquivo json não é válido.");
+          }
+        };
+        leitor.readAsText(arquivo);
+      } else {
+        alert("Por favor, selecione um arquivo .json válido.");
+      }
   }
 
   function handleClick() {
@@ -112,20 +111,16 @@ export default function Home() {
       alert("Não há nada para salvar.");
     }
   }
+
   return (
     <div className={styles.pagina}>
       <h1>CONVERTER JSON PARA SQLITE</h1>
       <p>
         Selecione um arquivo
       </p>
-      <input type="file" onChange={handleChange} />
-      <input
-        type="text"
-        placeholder="Digite o nome da tabela"
-        onChange={setNameTable}
-      />
+      <input type="file" onChange={handleChange} />     
       <button onClick={handleClick}>Salvar</button>
-      <pre>{sql}</pre>
+      {/* <pre>{sql}</pre> */}
     </div>
   );
 }
