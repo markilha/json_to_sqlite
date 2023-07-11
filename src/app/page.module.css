@@ -6,6 +6,20 @@
   padding: 6rem;
   min-height: 100vh;
 }
+.pagina {
+  /* Definir o contêiner como flexível */
+  display: flex;
+  /* Alinhar os elementos verticalmente no centro */
+  align-items: center;
+  /* Alinhar os elementos horizontalmente no centro */
+  justify-content: center;
+  /* Definir a altura do contêiner como 100% da janela */
+  height: 100vh;
+  flex-direction: column;
+  gap: 10px;
+
+}
+
 
 .description {
   display: inherit;
