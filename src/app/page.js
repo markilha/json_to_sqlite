@@ -4,99 +4,75 @@ import styles from "./page.module.css";
 
 export default function Home() {
   const [json, setJson] = useState(null);
-  const [sql, setSql] = useState(""); 
+  const [sql, setSql] = useState("");
+  const [keys, setKeys] = useState("");
+  const [tableName, setTableName] = useState(""); // State for table name input
 
-  function converterJsonEmSql(json) {
-    // Verificar se o json é válido
-    if (json && typeof json === "object") {
-      // Inicializar uma variável para armazenar o sql
-      let sql = "";
-      // Iterar sobre as chaves do json
-      for (let chave in json) {
-        // Obter o valor da chave
-        let valor = json[chave];
+  function converterJsonEmMysqlInsert(jsonArray, nomeTabela, chaves) {
+    let mysql = "";
 
-        // Verificar se o valor é um objeto
-        if (typeof valor === "object") {
-          // Converter o valor em sql recursivamente
-          let subsql = converterJsonEmSql(valor);
-
-          // Adicionar o subsql ao sql com a chave como nome da tabela
-          sql += `CREATE TABLE ${chave} (\n${subsql}\n);\n`;
-        } else {
-          // Adicionar o valor ao sql com a chave como nome da coluna e o tipo de dado adequado
-          if (typeof valor === "string") {
-            sql += `${chave} VARCHAR(255),\n`;
-          } else if (typeof valor === "number") {
-            sql += `${chave} INT,\n`;
-          } else if (typeof valor === "boolean") {
-            sql += `${chave} BOOLEAN,\n`;
-          }
+    for (let json of jsonArray) {
+      if (json && typeof json === "object") {
+        let valores = [];
+        if (nomeTabela) {
+          mysql += `INSERT INTO ${nomeTabela} (${chaves.join(
+            ", "
+          )}) VALUES (\n`;
         }
-      }
 
-      // Remover a última vírgula do sql
-      sql = sql.slice(0, -2);
-
-      // Retornar o sql
-      return sql;
-    } else {
-      // Retornar uma mensagem de erro se o json não for válido
-      return "O arquivo json não é válido.";
-    }
-  }
-  function converterJsonEmSqliteInsert(json, nomeTabela) {
-  
-    if (json && typeof json === "object") {
-      let sqlite = "";
-      let chaves = Object.keys(json);
-      let valores = Object.values(json);
-      if (nomeTabela) {
-        sqlite += `INSERT INTO ${nomeTabela} (${chaves.join(", ")}) VALUES (\n`;
-      }
-
-      for (let valor of valores) {
-        if (typeof valor === "object") {
-          let subsqlite = converterJsonEmSqliteInsert(valor, '@NOMETABELA');
-          sqlite += `${subsqlite}\n`;
-        } else {
-          if (typeof valor === "string") {
-            sqlite += `'${valor}',\n`;
+        for (let chave of chaves) {
+          let valor = json[chave];
+          if (typeof valor === "object") {
+            let submysql = converterJsonEmMysqlInsert(
+              valor,
+              null,
+              Object.keys(valor)
+            );
+            mysql += `${submysql}\n`;
           } else {
-            sqlite += `${valor},\n`;
+            if (typeof valor === "string") {
+              mysql += `'${valor.replace(/'/g, "\\'")}',\n`; // escape single quotes
+            } else {
+              mysql += `${valor},\n`;
+            }
           }
+          valores.push(valor);
         }
-      }
-      sqlite = sqlite.slice(0, -2);
+        mysql = mysql.slice(0, -2);
 
-      if (nomeTabela) {
-        sqlite += ");\n";
+        if (nomeTabela) {
+          mysql += ");\n";
+        }
+      } else {
+        return "O arquivo json não é válido.";
       }
-      return sqlite;
-    } else {
-      return "O arquivo json não é válido.";
     }
+    return mysql;
   }
 
   function handleChange(event) {
-    let arquivo = event.target.files[0];  
-      if (arquivo && arquivo.name.endsWith(".json")) {
-        let leitor = new FileReader();
-        leitor.onload = function (e) {
-          let conteudo = e.target.result;
-          try {
-            let json = JSON.parse(conteudo);
-            setJson(json);
-            let sql = converterJsonEmSqliteInsert(json);
-            setSql(sql);
-          } catch (erro) {
-            alert("O arquivo json não é válido.");
-          }
-        };
-        leitor.readAsText(arquivo);
-      } else {
-        alert("Por favor, selecione um arquivo .json válido.");
-      }
+    let arquivo = event.target.files[0];
+    if (arquivo && arquivo.name.endsWith(".json")) {
+      let leitor = new FileReader();
+      leitor.onload = function (e) {
+        let conteudo = e.target.result;
+        try {
+          let json = JSON.parse(conteudo);
+          setJson(json);
+          let sql = converterJsonEmMysqlInsert(
+            json,
+            tableName,
+            keys.split(",")
+          );
+          setSql(sql);
+        } catch (erro) {
+          alert("O arquivo json não é válido.");
+        }
+      };
+      leitor.readAsText(arquivo);
+    } else {
+      alert("Por favor, selecione um arquivo .json válido.");
+    }
   }
 
   function handleClick() {
@@ -112,13 +88,36 @@ export default function Home() {
     }
   }
 
+  function handleKeysChange(event) {
+    setKeys(event.target.value);
+  }
+
+  function handleTableNameChange(event) {
+    setTableName(event.target.value);
+  }
+
   return (
     <div className={styles.pagina}>
-      <h1>CONVERTER JSON PARA SQLITE</h1>
-      <p>
-        Selecione um arquivo
-      </p>
-      <input type="file" onChange={handleChange} />     
+      <h3>CONVERTER JSON PARA SQLITE</h3>
+      <div className={styles.corpo}>
+        <p>Inserir nome da tabela:</p>
+        <input
+          type="text"
+          value={tableName}
+          onChange={handleTableNameChange}
+        />{" "}
+      </div>
+      <div className={styles.corpo}>
+
+      <p>Inserir chaves (separadas por vírgula):</p>
+      <input type="text" value={keys} onChange={handleKeysChange} />
+      </div>
+      <div className={styles.corpo}>
+      <p>Selecione um arquivo</p>
+      <input type="file" onChange={handleChange} />
+
+      </div>
+   
       <button onClick={handleClick}>Salvar</button>
       {/* <pre>{sql}</pre> */}
     </div>
