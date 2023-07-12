@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import styles from "./page.module.css";
+import Header from "./components/header";
 
 export default function Home() {
   const [json, setJson] = useState(null);
@@ -97,29 +98,43 @@ export default function Home() {
   }
 
   return (
-    <div className={styles.pagina}>
-      <h3>CONVERTER JSON PARA SQLITE</h3>
-      <div className={styles.corpo}>
-        <p>Inserir nome da tabela:</p>
-        <input
-          type="text"
-          value={tableName}
-          onChange={handleTableNameChange}
-        />{" "}
-      </div>
-      <div className={styles.corpo}>
+    <>
+      <Header />
+      <div className={styles.main}>
+        <div className={styles.content}>
+          <div className={styles.corpo}>
+            <p>NOME TABELA: </p>
+            <input
+              type="text"
+              value={tableName}
+              onChange={handleTableNameChange}
+              className={styles.input}
+            />{" "}
+          </div>
+          <div className={styles.corpo}>
+            <p>CHAVES(separadas por vírgula):</p>
+            <input
+              type="text"
+              value={keys}
+              onChange={handleKeysChange}
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.corpo}>
+            <input
+              type="file"
+              onChange={handleChange}
+              
+            />
+          </div>
 
-      <p>Inserir chaves (separadas por vírgula):</p>
-      <input type="text" value={keys} onChange={handleKeysChange} />
+          <div className={styles.container_button}>
+            <button className={styles.button} onClick={handleClick}>
+              Salvar
+            </button>
+          </div>
+        </div>
       </div>
-      <div className={styles.corpo}>
-      <p>Selecione um arquivo</p>
-      <input type="file" onChange={handleChange} />
-
-      </div>
-   
-      <button onClick={handleClick}>Salvar</button>
-      {/* <pre>{sql}</pre> */}
-    </div>
+    </>
   );
 }
